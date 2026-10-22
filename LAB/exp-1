@@ -1,0 +1,556 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f5fa;
+            color: #243047;
+        }
+
+        header {
+            background: #243b70;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        nav {
+            background: #17294f;
+            padding: 12px;
+            text-align: center;
+        }
+
+        nav button {
+            background: transparent;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        nav button:hover {
+            background: #38599a;
+            border-radius: 5px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 25px auto;
+            padding: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px #00000010;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 15px;
+        }
+
+        .stat {
+            background: #e2eaff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .stat h2 {
+            color: #243b70;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            margin: 7px 0 13px;
+            border: 1px solid #ccd3df;
+            border-radius: 5px;
+        }
+
+        .action {
+            background: #3159a5;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .delete {
+            background: #c0392b;
+            color: white;
+            border: none;
+            padding: 7px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e1e5ed;
+        }
+
+        th {
+            background: #edf1f8;
+        }
+
+        .available {
+            color: green;
+            font-weight: bold;
+        }
+
+        .unavailable {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #243b70;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            nav button {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>📚 Library Management System</h1>
+    <p>Manage books, borrowing records and study materials</p>
+</header>
+
+<nav>
+    <button onclick="showPage('home')">Dashboard</button>
+    <button onclick="showPage('books')">Book Catalog</button>
+    <button onclick="showPage('manage')">Manage Books</button>
+    <button onclick="showPage('materials')">Study Materials</button>
+</nav>
+
+<main>
+
+    <!-- Dashboard -->
+    <section id="home" class="page">
+        <div class="card">
+            <h2>Welcome to the Library</h2>
+            <p>Search books, manage inventory and access learning resources.</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <p>Total Book Titles</p>
+                <h2 id="totalBooks">0</h2>
+            </div>
+
+            <div class="stat">
+                <p>Available Copies</p>
+                <h2 id="availableBooks">0</h2>
+            </div>
+
+            <div class="stat">
+                <p>Issued Copies</p>
+                <h2 id="issuedBooks">0</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- Book Catalog -->
+    <section id="books" class="page hidden">
+        <div class="card">
+            <h2>Book Catalog</h2>
+
+            <input
+                type="text"
+                id="search"
+                placeholder="Search by title, author or category..."
+                oninput="displayBooks()"
+            >
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Available</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookList"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin: Manage Books -->
+    <section id="manage" class="page hidden">
+        <div class="card">
+            <h2>Add a New Book</h2>
+
+            <form id="bookForm">
+                <label>Book Title</label>
+                <input id="title" required placeholder="Enter book title">
+
+                <label>Author</label>
+                <input id="author" required placeholder="Enter author name">
+
+                <label>Category</label>
+                <select id="category">
+                    <option>Computer Science</option>
+                    <option>Science</option>
+                    <option>Mathematics</option>
+                    <option>Literature</option>
+                    <option>General</option>
+                </select>
+
+                <label>Total Copies</label>
+                <input id="copies" type="number" min="1" value="1" required>
+
+                <button class="action" type="submit">Add Book</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Manage Inventory</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Total</th>
+                            <th>Available</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryList"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Study Materials -->
+    <section id="materials" class="page hidden">
+        <div class="card">
+            <h2>Study Materials</h2>
+
+            <label>Choose Academic Year</label>
+            <select id="yearFilter" onchange="displayMaterials()">
+                <option value="all">All Years</option>
+                <option>1st Year</option>
+                <option>2nd Year</option>
+                <option>3rd Year</option>
+                <option>4th Year</option>
+            </select>
+
+            <label>Choose Semester</label>
+            <select id="semesterFilter" onchange="displayMaterials()">
+                <option value="all">All Semesters</option>
+                <option>Semester 1</option>
+                <option>Semester 2</option>
+                <option>Semester 3</option>
+                <option>Semester 4</option>
+                <option>Semester 5</option>
+                <option>Semester 6</option>
+                <option>Semester 7</option>
+                <option>Semester 8</option>
+            </select>
+
+            <div id="materialList"></div>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <p>Library Management System | Student & Librarian Portal</p>
+</footer>
+
+<script>
+    // Sample books
+    let books = JSON.parse(localStorage.getItem("libraryBooks")) || [
+        {
+            id: 1,
+            title: "Python Programming",
+            author: "John Smith",
+            category: "Computer Science",
+            copies: 5,
+            available: 5
+        },
+        {
+            id: 2,
+            title: "Database Management",
+            author: "Thomas Connolly",
+            category: "Computer Science",
+            copies: 4,
+            available: 3
+        },
+        {
+            id: 3,
+            title: "Engineering Mathematics",
+            author: "B. S. Grewal",
+            category: "Mathematics",
+            copies: 6,
+            available: 6
+        }
+    ];
+
+    let materials = [
+        {
+            title: "Python Programming Notes",
+            year: "2nd Year",
+            semester: "Semester 3",
+            url: ""
+        },
+        {
+            title: "Database Management Notes",
+            year: "2nd Year",
+            semester: "Semester 4",
+            url: ""
+        },
+        {
+            title: "Web Technology Notes",
+            year: "3rd Year",
+            semester: "Semester 5",
+            url: ""
+        }
+    ];
+
+    function saveBooks() {
+        localStorage.setItem("libraryBooks", JSON.stringify(books));
+    }
+
+    function showPage(pageId) {
+        document.querySelectorAll(".page").forEach(page => {
+            page.classList.add("hidden");
+        });
+
+        document.getElementById(pageId).classList.remove("hidden");
+
+        displayBooks();
+        displayInventory();
+        displayStats();
+        displayMaterials();
+    }
+
+    function displayStats() {
+        document.getElementById("totalBooks").textContent = books.length;
+
+        document.getElementById("availableBooks").textContent =
+            books.reduce((sum, book) => sum + book.available, 0);
+
+        document.getElementById("issuedBooks").textContent =
+            books.reduce((sum, book) => sum + book.copies - book.available, 0);
+    }
+
+    function displayBooks() {
+        const search = document.getElementById("search").value.toLowerCase();
+
+        const filteredBooks = books.filter(book =>
+            (book.title + " " + book.author + " " + book.category)
+                .toLowerCase()
+                .includes(search)
+        );
+
+        document.getElementById("bookList").innerHTML =
+            filteredBooks.map(book => `
+                <tr>
+                    <td>${escapeHTML(book.title)}</td>
+                    <td>${escapeHTML(book.author)}</td>
+                    <td>${escapeHTML(book.category)}</td>
+                    <td class="${book.available > 0 ? 'available' : 'unavailable'}">
+                        ${book.available > 0 ? book.available : "Unavailable"}
+                    </td>
+                    <td>
+                        <button class="action"
+                            onclick="issueBook(${book.id})"
+                            ${book.available < 1 ? "disabled" : ""}>
+                            Issue
+                        </button>
+                    </td>
+                </tr>
+            `).join("");
+    }
+
+    function displayInventory() {
+        document.getElementById("inventoryList").innerHTML =
+            books.map(book => `
+                <tr>
+                    <td>${escapeHTML(book.title)}</td>
+                    <td>${book.copies}</td>
+                    <td>${book.available}</td>
+                    <td>
+                        <button class="action" onclick="returnBook(${book.id})">
+                            Return
+                        </button>
+                        <button class="delete" onclick="deleteBook(${book.id})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join("");
+    }
+
+    document.getElementById("bookForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const title = document.getElementById("title").value.trim();
+        const author = document.getElementById("author").value.trim();
+        const category = document.getElementById("category").value;
+        const copies = Number(document.getElementById("copies").value);
+
+        if (!title || !author || copies < 1) {
+            alert("Please enter valid book details.");
+            return;
+        }
+
+        books.push({
+            id: Date.now(),
+            title,
+            author,
+            category,
+            copies,
+            available: copies
+        });
+
+        saveBooks();
+        this.reset();
+
+        displayBooks();
+        displayInventory();
+        displayStats();
+
+        alert("Book added successfully!");
+    });
+
+    function issueBook(id) {
+        const book = books.find(item => item.id === id);
+
+        if (!book || book.available < 1) {
+            alert("No copies are available.");
+            return;
+        }
+
+        if (confirm("Issue '" + book.title + "' to a student?")) {
+            book.available--;
+            saveBooks();
+            displayBooks();
+            displayInventory();
+            displayStats();
+            alert("Book issued successfully!");
+        }
+    }
+
+    function returnBook(id) {
+        const book = books.find(item => item.id === id);
+
+        if (book && book.available < book.copies) {
+            book.available++;
+            saveBooks();
+            displayBooks();
+            displayInventory();
+            displayStats();
+            alert("Book returned successfully!");
+        } else {
+            alert("No outstanding issued copy is recorded for this title.");
+        }
+    }
+
+    function deleteBook(id) {
+        const book = books.find(item => item.id === id);
+
+        if (!book) return;
+
+        if (book.available !== book.copies) {
+            alert("Return all issued copies before deleting this book.");
+            return;
+        }
+
+        if (confirm("Delete '" + book.title + "'?")) {
+            books = books.filter(item => item.id !== id);
+            saveBooks();
+            displayBooks();
+            displayInventory();
+            displayStats();
+        }
+    }
+
+    function displayMaterials() {
+        const year = document.getElementById("yearFilter").value;
+        const semester = document.getElementById("semesterFilter").value;
+
+        const filtered = materials.filter(item =>
+            (year === "all" || item.year === year) &&
+            (semester === "all" || item.semester === semester)
+        );
+
+        document.getElementById("materialList").innerHTML =
+            filtered.map(item => `
+                <div class="card">
+                    <h3>${escapeHTML(item.title)}</h3>
+                    <p>${escapeHTML(item.year)} | ${escapeHTML(item.semester)}</p>
+                    ${
+                        item.url
+                        ? `<a href="${escapeHTML(item.url)}" target="_blank"
+                             rel="noopener noreferrer">Open study material</a>`
+                        : "<p>Ask the librarian to add a download link.</p>"
+                    }
+                </div>
+            `).join("") || "<p>No materials found for this selection.</p>";
+    }
+
+    function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }
+
+    // Display initial data
+    showPage("home");
+</script>
+
+</body>
+</html>
